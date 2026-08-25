@@ -1,0 +1,2 @@
+# MBCNPS
+MBCNPS배치파일입니다
