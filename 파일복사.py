@@ -12,7 +12,7 @@ class MAMAutoCopierApp:
     def __init__(self, root):
         self.root = root
         self.root.title("MAM 자동 파일 복사 스케줄러 (주말/야간 무인 운용)")
-        self.root.geometry("860x880")
+        self.root.geometry("860x900")
         self.root.resizable(True, True)
 
         self.is_running = False
@@ -31,118 +31,121 @@ class MAMAutoCopierApp:
         # ==========================================
         # 1. 경로 설정 그룹
         # ==========================================
-        path_group = ttk.LabelFrame(main_frame, text=" 1. 경로 설정 ", padding="10")
-        path_group.pack(fill=tk.X, pady=5)
+        self.path_group = ttk.LabelFrame(main_frame, text=" 1. 경로 설정 ", padding="10")
+        self.path_group.pack(fill=tk.X, pady=5)
 
-        ttk.Label(path_group, text="소스 폴더:").grid(row=0, column=0, sticky=tk.W, pady=2)
+        ttk.Label(self.path_group, text="소스 폴더:").grid(row=0, column=0, sticky=tk.W, pady=2)
         self.src_path_var = tk.StringVar()
-        ttk.Entry(path_group, textvariable=self.src_path_var, width=65).grid(row=0, column=1, padx=5, pady=2)
-        ttk.Button(path_group, text="찾아보기", command=lambda: self._browse_folder(self.src_path_var)).grid(row=0,
-                                                                                                         column=2,
-                                                                                                         pady=2)
+        self.src_entry = ttk.Entry(self.path_group, textvariable=self.src_path_var, width=65)
+        self.src_entry.grid(row=0, column=1, padx=5, pady=2)
+        self.src_btn = ttk.Button(self.path_group, text="찾아보기", command=lambda: self._browse_folder(self.src_path_var))
+        self.src_btn.grid(row=0, column=2, pady=2)
 
-        ttk.Label(path_group, text="타겟 폴더:").grid(row=1, column=0, sticky=tk.W, pady=2)
+        ttk.Label(self.path_group, text="타겟 폴더:").grid(row=1, column=0, sticky=tk.W, pady=2)
         self.dst_path_var = tk.StringVar()
-        ttk.Entry(path_group, textvariable=self.dst_path_var, width=65).grid(row=1, column=1, padx=5, pady=2)
-        ttk.Button(path_group, text="찾아보기", command=lambda: self._browse_folder(self.dst_path_var)).grid(row=1,
-                                                                                                         column=2,
-                                                                                                         pady=2)
+        self.dst_entry = ttk.Entry(self.path_group, textvariable=self.dst_path_var, width=65)
+        self.dst_entry.grid(row=1, column=1, padx=5, pady=2)
+        self.dst_btn = ttk.Button(self.path_group, text="찾아보기", command=lambda: self._browse_folder(self.dst_path_var))
+        self.dst_btn.grid(row=1, column=2, pady=2)
 
-        ttk.Label(path_group, text="로그파일 저장폴더:").grid(row=2, column=0, sticky=tk.W, pady=2)
+        ttk.Label(self.path_group, text="로그파일 저장폴더:").grid(row=2, column=0, sticky=tk.W, pady=2)
         self.log_path_var = tk.StringVar(value=os.getcwd())
-        ttk.Entry(path_group, textvariable=self.log_path_var, width=65).grid(row=2, column=1, padx=5, pady=2)
-        ttk.Button(path_group, text="폴더 선택", command=lambda: self._browse_folder(self.log_path_var)).grid(row=2,
-                                                                                                          column=2,
-                                                                                                          pady=2)
+        self.log_entry = ttk.Entry(self.path_group, textvariable=self.log_path_var, width=65)
+        self.log_entry.grid(row=2, column=1, padx=5, pady=2)
+        self.log_btn = ttk.Button(self.path_group, text="폴더 선택", command=lambda: self._browse_folder(self.log_path_var))
+        self.log_btn.grid(row=2, column=2, pady=2)
 
         # ==========================================
         # 2. 파일 필터링 설정 그룹 (대소문자 안내 반영)
         # ==========================================
-        filter_group = ttk.LabelFrame(main_frame, text=" 2. 파일 필터링 설정 (※ 대문자와 소문자를 따로따로 2번 적어주셔야 합니다) ", padding="10")
-        filter_group.pack(fill=tk.X, pady=5)
+        self.filter_group = ttk.LabelFrame(main_frame, text=" 2. 파일 필터링 설정 (※ 대문자와 소문자를 따로따로 2번 적어주셔야 합니다) ",
+                                           padding="10")
+        self.filter_group.pack(fill=tk.X, pady=5)
 
-        frame_inc_ext = ttk.Frame(filter_group)
+        frame_inc_ext = ttk.Frame(self.filter_group)
         frame_inc_ext.grid(row=0, column=0, padx=5, sticky=tk.N + tk.S + tk.E + tk.W)
 
-        frame_exc_ext = ttk.Frame(filter_group)
+        frame_exc_ext = ttk.Frame(self.filter_group)
         frame_exc_ext.grid(row=0, column=1, padx=5, sticky=tk.N + tk.S + tk.E + tk.W)
 
-        frame_exc_kw = ttk.Frame(filter_group)
+        frame_exc_kw = ttk.Frame(self.filter_group)
         frame_exc_kw.grid(row=0, column=2, padx=5, sticky=tk.N + tk.S + tk.E + tk.W)
 
-        filter_group.columnconfigure(0, weight=1)
-        filter_group.columnconfigure(1, weight=1)
-        filter_group.columnconfigure(2, weight=1)
+        self.filter_group.columnconfigure(0, weight=1)
+        self.filter_group.columnconfigure(1, weight=1)
+        self.filter_group.columnconfigure(2, weight=1)
 
         # (1) 허용 확장자
         ttk.Label(frame_inc_ext, text="✅ 허용 확장자\n(비워두면 모든 파일 허용)").pack(anchor=tk.W)
-        self.list_inc_ext, self.entry_inc_ext = self._create_listbox_widget(
+        self.list_inc_ext, self.entry_inc_ext, self.add_btn_1, self.del_btn_1 = self._create_listbox_widget(
             frame_inc_ext, default_items=[".mxf", ".MXF", ".mov", ".MOV"]
         )
 
         # (2) 제외 확장자/패턴
         ttk.Label(frame_exc_ext, text="⛔ 제외 패턴\n(예: *.tmp, *.TMP)").pack(anchor=tk.W)
-        self.list_exc_ext, self.entry_exc_ext = self._create_listbox_widget(
+        self.list_exc_ext, self.entry_exc_ext, self.add_btn_2, self.del_btn_2 = self._create_listbox_widget(
             frame_exc_ext, default_items=["*.tmp", "*.TMP", "Thumbs.db"]
         )
 
         # (3) 제외 키워드
         ttk.Label(frame_exc_kw, text="⛔ 제외 파일명 키워드\n(예: draft)").pack(anchor=tk.W)
-        self.list_exc_kw, self.entry_exc_kw = self._create_listbox_widget(
+        self.list_exc_kw, self.entry_exc_kw, self.add_btn_3, self.del_btn_3 = self._create_listbox_widget(
             frame_exc_kw, default_items=["draft", "temp"]
         )
 
         # ==========================================
         # 3. 동작 규칙 그룹 (요청사항 반영)
         # ==========================================
-        action_group = ttk.LabelFrame(main_frame, text=" 3. 복사 및 스케줄 옵션 ", padding="10")
-        action_group.pack(fill=tk.X, pady=5)
+        self.action_group = ttk.LabelFrame(main_frame, text=" 3. 복사 및 스케줄 옵션 ", padding="10")
+        self.action_group.pack(fill=tk.X, pady=5)
 
         # [1줄] 하위폴더 탐색 여부 (y/n 형태로 직관적 명시)
-        subfolder_frame = ttk.Frame(action_group)
+        subfolder_frame = ttk.Frame(self.action_group)
         subfolder_frame.grid(row=0, column=0, columnspan=2, sticky=tk.W, padx=5, pady=3)
         ttk.Label(subfolder_frame, text="하위폴더 탐색 여부 (y/n):").pack(side=tk.LEFT, padx=(0, 5))
         self.subfolder_choice_var = tk.StringVar(value="y")
-        ttk.Radiobutton(subfolder_frame, text="y (포함)", variable=self.subfolder_choice_var, value="y").pack(
-            side=tk.LEFT, padx=5)
-        ttk.Radiobutton(subfolder_frame, text="n (미포함)", variable=self.subfolder_choice_var, value="n").pack(
-            side=tk.LEFT, padx=5)
+        self.sub_y_rb = ttk.Radiobutton(subfolder_frame, text="y (포함)", variable=self.subfolder_choice_var, value="y")
+        self.sub_y_rb.pack(side=tk.LEFT, padx=5)
+        self.sub_n_rb = ttk.Radiobutton(subfolder_frame, text="n (미포함)", variable=self.subfolder_choice_var, value="n")
+        self.sub_n_rb.pack(side=tk.LEFT, padx=5)
 
         # [2줄] 폴더구조 유지 방식
-        structure_frame = ttk.Frame(action_group)
+        structure_frame = ttk.Frame(self.action_group)
         structure_frame.grid(row=1, column=0, columnspan=2, sticky=tk.W, padx=5, pady=3)
         ttk.Label(structure_frame, text="폴더 구조 처리:").pack(side=tk.LEFT, padx=(0, 15))
         self.structure_mode_var = tk.StringVar(value="preserve")
-        ttk.Radiobutton(structure_frame, text="폴더구조를 유지하겠습니다.", variable=self.structure_mode_var,
-                        value="preserve").pack(side=tk.LEFT, padx=5)
-        ttk.Radiobutton(structure_frame, text="타겟폴더에 구조 상관없이 파일을 모으겠습니다.", variable=self.structure_mode_var,
-                        value="flat").pack(side=tk.LEFT, padx=5)
+        self.struct_preserve_rb = ttk.Radiobutton(structure_frame, text="폴더구조를 유지하겠습니다.",
+                                                  variable=self.structure_mode_var, value="preserve")
+        self.struct_preserve_rb.pack(side=tk.LEFT, padx=5)
+        self.struct_flat_rb = ttk.Radiobutton(structure_frame, text="타겟폴더에 구조 상관없이 파일을 모으겠습니다.",
+                                              variable=self.structure_mode_var, value="flat")
+        self.struct_flat_rb.pack(side=tk.LEFT, padx=5)
 
         # [3줄] 파일명 중복 처리 방식 선택 옵션 추가
-        conflict_frame = ttk.Frame(action_group)
+        conflict_frame = ttk.Frame(self.action_group)
         conflict_frame.grid(row=2, column=0, columnspan=2, sticky=tk.W, padx=5, pady=3)
         ttk.Label(conflict_frame, text="중복 파일 처리:").pack(side=tk.LEFT, padx=(0, 15))
         self.conflict_mode_var = tk.StringVar(value="rename")
-        ttk.Radiobutton(conflict_frame, text="파일명 뒤에 숫자(_1, _2...) 붙이기", variable=self.conflict_mode_var,
-                        value="rename").pack(side=tk.LEFT, padx=5)
-        ttk.Radiobutton(conflict_frame, text="덮어쓰기", variable=self.conflict_mode_var, value="overwrite").pack(
-            side=tk.LEFT, padx=5)
+        self.conflict_rename_rb = ttk.Radiobutton(conflict_frame, text="파일명 뒤에 숫자(_1, _2...) 붙이기",
+                                                  variable=self.conflict_mode_var, value="rename")
+        self.conflict_rename_rb.pack(side=tk.LEFT, padx=5)
+        self.conflict_overwrite_rb = ttk.Radiobutton(conflict_frame, text="덮어쓰기", variable=self.conflict_mode_var,
+                                                     value="overwrite")
+        self.conflict_overwrite_rb.pack(side=tk.LEFT, padx=5)
 
         # [4줄] 복사 완료 후 원본 삭제 옵션
         self.delete_after_copy_var = tk.BooleanVar(value=False)
-        ttk.Checkbutton(action_group, text="복사 완료 후 원본 파일 삭제 (주의)", variable=self.delete_after_copy_var).grid(row=3,
-                                                                                                              column=0,
-                                                                                                              columnspan=2,
-                                                                                                              sticky=tk.W,
-                                                                                                              padx=5,
-                                                                                                              pady=3)
+        self.delete_chk = ttk.Checkbutton(self.action_group, text="복사 완료 후 원본 파일 삭제 (주의)",
+                                          variable=self.delete_after_copy_var)
+        self.delete_chk.grid(row=3, column=0, columnspan=2, sticky=tk.W, padx=5, pady=3)
 
         # [5줄] 반복 주기 설정
-        cycle_frame = ttk.Frame(action_group)
+        cycle_frame = ttk.Frame(self.action_group)
         cycle_frame.grid(row=4, column=0, columnspan=2, sticky=tk.W, padx=5, pady=3)
         ttk.Label(cycle_frame, text="반복 주기 (초):").pack(side=tk.LEFT)
         self.interval_var = tk.IntVar(value=60)
-        ttk.Entry(cycle_frame, textvariable=self.interval_var, width=8).pack(side=tk.LEFT, padx=5)
+        self.interval_entry = ttk.Entry(cycle_frame, textvariable=self.interval_var, width=8)
+        self.interval_entry.pack(side=tk.LEFT, padx=5)
 
         # ==========================================
         # 4. 제어 및 상태 모니터
@@ -197,12 +200,43 @@ class MAMAutoCopierApp:
         for item in default_items:
             listbox.insert(tk.END, item)
 
-        return listbox, entry
+        return listbox, entry, btn_add, btn_del
 
     def _browse_folder(self, var):
         path = filedialog.askdirectory()
         if path:
             var.set(path)
+
+    def _set_inputs_state(self, state):
+        """스케줄러 시작/정지에 따라 입력 필드 전체 활성/비활성화 제어"""
+        st = tk.NORMAL if state else tk.DISABLED
+
+        # 1. 경로 설정
+        self.src_entry.config(state=st)
+        self.src_btn.config(state=st)
+        self.dst_entry.config(state=st)
+        self.dst_btn.config(state=st)
+        self.log_entry.config(state=st)
+        self.log_btn.config(state=st)
+
+        # 2. 필터 설정 (엔트리, 버튼, 리스트박스)
+        for entry, b_add, b_del in [
+            (self.entry_inc_ext, self.add_btn_1, self.del_btn_1),
+            (self.entry_exc_ext, self.add_btn_2, self.del_btn_2),
+            (self.entry_exc_kw, self.add_btn_3, self.del_btn_3)
+        ]:
+            entry.config(state=st)
+            b_add.config(state=st)
+            b_del.config(state=st)
+
+        # 3. 옵션 라디오버튼 및 체크박스/엔트리
+        for w in [
+            self.sub_y_rb, self.sub_n_rb,
+            self.struct_preserve_rb, self.struct_flat_rb,
+            self.conflict_rename_rb, self.conflict_overwrite_rb,
+            self.delete_chk, self.interval_entry
+        ]:
+            w.config(state=st)
 
     def log(self, message):
         now = datetime.now()
@@ -247,8 +281,10 @@ class MAMAutoCopierApp:
         self.is_running = True
         self.stop_event.clear()
 
+        # 버튼 상태 변경 및 입력창 잠금
         self.start_btn.config(state=tk.DISABLED)
         self.stop_btn.config(state=tk.NORMAL)
+        self._set_inputs_state(False)
 
         self.current_inc_exts = list(self.list_inc_ext.get(0, tk.END))
         self.current_exc_exts = list(self.list_exc_ext.get(0, tk.END))
@@ -265,8 +301,11 @@ class MAMAutoCopierApp:
         self.stop_event.set()
         self.is_running = False
         self.log("=== 정지 요청 전송됨. 현재 대기 및 작업 완료 후 중지됩니다... ===")
+
+        # 버튼 상태 원복 및 입력창 잠금 해제
         self.start_btn.config(state=tk.NORMAL)
         self.stop_btn.config(state=tk.DISABLED)
+        self._set_inputs_state(True)
 
     def _scheduler_loop(self):
         while not self.stop_event.is_set():
@@ -353,7 +392,6 @@ class MAMAutoCopierApp:
 
                 # 파일 중복 처리 로직
                 if os.path.exists(dst_filepath):
-                    # 소스 파일과 크기가 정확히 일치하면 이미 복사된 파일로 판단하여 스킵
                     try:
                         if os.path.getsize(src_filepath) == os.path.getsize(dst_filepath):
                             continue
@@ -368,7 +406,7 @@ class MAMAutoCopierApp:
                             dst_filepath = os.path.join(target_dir, new_filename)
                             counter += 1
 
-                # 4. 파일 쓰기 완료 검증 (21초 x 3회 체크)
+                # 4. 파일 쓰기 완료 검증 (21초 x 2회 대기)
                 self.log(f"[CHECKING] {file} (21초 x 2회 대기)...")
                 if not self._is_file_ready(src_filepath, file):
                     self.log(f"[SKIP] {file} (생성 중이거나 변경됨)")
